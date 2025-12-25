@@ -1,5 +1,6 @@
 use crate::vcpu::VmCpuRegisters;
 use axlog::ax_println;
+use axhal::mem::PhysAddr;
 
 /// VMX MSR numbers
 const MSR_IA32_VMX_BASIC: u32 = 0x480;
@@ -285,17 +286,22 @@ unsafe fn vmxon(phys_addr: u64) -> bool {
     cr4 |= 1 << 13; // Set VMXE bit
     write_cr4(cr4);
     
-    let rflags: u64;
+    // Execute VMXON and check carry flag
+    let success: u8;
     core::arch::asm!(
-        "vmxon [{}]",
-        in(reg) &phys_addr,
-        lateout("eax") rflags,
+        "vmxon [{0}]",
+        "jnc 2f",
+        "mov {1}, 0",
+        "jmp 3f",
+        "2: mov {1}, 1",
+        "3:",
+        in(reg) phys_addr,
+        out(reg_byte) success,
         options(nostack)
     );
     
-    // Check carry flag (bit 0 of rflags after vmxon)
-    // If CF=0, VMXON succeeded; if CF=1, it failed
-    (rflags & 0x1) == 0
+    ax_println!("VMXON {}", if success != 0 { "succeeded" } else { "failed" });
+    success != 0
 }
 
 /// VMXOFF instruction
@@ -624,18 +630,15 @@ unsafe fn setup_ept_pointer(ept_root: axhal::mem::PhysAddr) -> Result<(), &'stat
 /// Launch the VM
 pub fn vmx_launch(ctx: &mut VmCpuRegisters) {
     unsafe {
-        let mut rip: u64;
-        let mut rsp: u64;
-        let mut rflags: u64;
-        
-        // Save host state
-        core::arch::asm!(
-            "mov {0}, rsp",
-            out(reg) rsp,
-        );
+        ax_println!("Launching VM...");
         
         // Set up host RSP in VMCS
-        vmwrite(VMCS_HOST_RSP, rsp);
+        let mut host_rsp: u64;
+        core::arch::asm!(
+            "mov {0}, rsp",
+            out(reg) host_rsp,
+        );
+        vmwrite(VMCS_HOST_RSP, host_rsp);
         
         // Set host RIP to instruction after VMLAUNCH
         let mut host_rip: u64;
@@ -646,16 +649,11 @@ pub fn vmx_launch(ctx: &mut VmCpuRegisters) {
         );
         vmwrite(VMCS_HOST_RIP, host_rip);
         
-        ax_println!("Launching VM...");
-        
-        // Execute VMLAUNCH
-        let mut cf: u8;
+        // Execute VMLAUNCH directly
+        ax_println!("Executing VMLAUNCH...");
         core::arch::asm!(
-            "3:",
             "vmlaunch",
-            "4:",
-            "setc {al}",
-            al = out(reg_byte) cf,
+            "2:",
         );
         
         // If we reach here, VM-exit occurred

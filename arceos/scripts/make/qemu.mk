@@ -12,8 +12,6 @@ endif
 
 qemu_args-x86_64 := \
   -machine q35 \
-  -smp $(SMP) -m 16G -accel kvm -nographic \
-  -cpu host,-la57,-waitpkg,-kvm-asyncpf,-kvm-pv-eoi,-kvm-pv-ipi,-kvm-pv-sched-yield,-kvm-pv-unhalt,-kvm-steal-time,-kvmclock \
   -kernel $(OUT_ELF)
 
 qemu_args-riscv64 := \

@@ -1,4 +1,4 @@
-use core::mem::size_of;
+use core::arch::global_asm;
 
 /// Guest CPU state that must be saved/restored when entering/exiting a VM.
 #[derive(Default, Clone, Copy)]
