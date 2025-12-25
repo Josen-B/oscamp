@@ -29,6 +29,8 @@ members = [
     "payload/origin",
     "payload/skernel",
     "payload/skernel2",
+    "payload/skernel-x86",
+    "tour/h_5_0",
 
     "tour/u_1_0",
     "tour/u_2_0",

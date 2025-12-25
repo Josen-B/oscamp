@@ -23,8 +23,13 @@ define make_disk_image
 endef
 
 define mk_pflash
-  @RUSTFLAGS="" cargo build -p origin  --target riscv64gc-unknown-none-elf --release
-  @rust-objcopy --binary-architecture=riscv64 --strip-all -O binary ./target/riscv64gc-unknown-none-elf/release/origin /tmp/origin.bin
+  @if [ "$(ARCH)" = "x86_64" ]; then \
+    RUSTFLAGS="" cargo build -p origin --target x86_64-unknown-none --release; \
+    rust-objcopy --binary-architecture=x86_64 --strip-all -O binary ./target/x86_64-unknown-none/release/origin /tmp/origin.bin; \
+  else \
+    RUSTFLAGS="" cargo build -p origin --target riscv64gc-unknown-none-elf --release; \
+    rust-objcopy --binary-architecture=riscv64 --strip-all -O binary ./target/riscv64gc-unknown-none-elf/release/origin /tmp/origin.bin; \
+  fi
   @printf "pfld\00\00\00\01" > /tmp/prefix.bin
   @printf "%08x" `stat -c "%s" /tmp/origin.bin` | xxd -r -ps > /tmp/size.bin
   @cat /tmp/prefix.bin /tmp/size.bin > /tmp/head.bin
@@ -44,6 +49,11 @@ define setup_disk
 endef
 
 define build_origin
-  @RUSTFLAGS="" cargo build -p origin  --target riscv64gc-unknown-none-elf --release
-  @rust-objcopy --binary-architecture=riscv64 --strip-all -O binary ./target/riscv64gc-unknown-none-elf/release/origin /tmp/origin.bin
+  @if [ "$(ARCH)" = "x86_64" ]; then \
+    RUSTFLAGS="" cargo build -p origin --target x86_64-unknown-none --release; \
+    rust-objcopy --binary-architecture=x86_64 --strip-all -O binary ./target/x86_64-unknown-none/release/origin /tmp/origin.bin; \
+  else \
+    RUSTFLAGS="" cargo build -p origin --target riscv64gc-unknown-none-elf --release; \
+    rust-objcopy --binary-architecture=riscv64 --strip-all -O binary ./target/riscv64gc-unknown-none-elf/release/origin /tmp/origin.bin; \
+  fi
 endef

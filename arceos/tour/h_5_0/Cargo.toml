@@ -1,0 +1,18 @@
+[package]
+name = "h_5_0"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axstd = { workspace = true, features = ["alloc", "paging", "multitask", "sched_cfs", "fs"], optional = true }
+axhal = { workspace = true }
+axmm = { workspace = true }
+axtask = { workspace = true }
+axsync = { workspace = true }
+axerrno = "0.1"
+axlog = { workspace = true }
+bitflags = "2.4"
+memoffset = "0.9"
+
+[features]
+default = ["axstd"]

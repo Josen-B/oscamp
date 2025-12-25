@@ -25,11 +25,8 @@
 //! [cargo test]: https://doc.rust-lang.org/cargo/guide/tests.html
 
 #![no_std]
-#![feature(asm_const)]
 #![feature(naked_functions)]
-#![feature(const_option)]
 #![feature(doc_auto_cfg)]
-#![feature(const_mut_refs)]
 
 #[allow(unused_imports)]
 #[macro_use]
