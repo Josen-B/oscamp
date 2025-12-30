@@ -1,0 +1,649 @@
+    [92;1mBuilding[0m App: h_5_0, Arch: x86_64, Platform: x86_64-qemu-q35, App type: rust
+[37mcargo -C tour/h_5_0/ build[0m [90m-Z unstable-options --target x86_64-unknown-none --target-dir /code/oscamp/arceos/target --release  --features "axstd/log-level-info"[0m
+warning: unused import: `arch::asm`
+ --> modules/axhal/src/arch/x86_64/context.rs:1:12
+  |
+1 | use core::{arch::asm, arch::naked_asm, fmt};
+  |            ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: creating a mutable reference to mutable static is discouraged
+  --> modules/axhal/src/platform/x86_pc/apic.rs:68:14
+   |
+68 |     unsafe { LOCAL_APIC.as_mut().unwrap() }
+   |              ^^^^^^^^^^^^^^^^^^^ mutable reference to mutable static
+   |
+   = note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/static-mut-references.html>
+   = note: mutable references to mutable statics are dangerous; it's undefined behavior if any other pointer to the static is used or if any other reference is created for the static while the mutable reference lives
+   = note: `#[warn(static_mut_refs)]` on by default
+
+warning: `axhal` (lib) generated 2 warnings (run `cargo fix --lib -p axhal` to apply 1 suggestion)
+warning: the feature `const_mut_refs` has been stable since 1.83.0 and no longer requires an attribute to enable
+  --> modules/axtask/src/lib.rs:32:12
+   |
+32 | #![feature(const_mut_refs)]
+   |            ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(stable_features)]` on by default
+
+warning: the feature `const_ptr_is_null` has been stable since 1.84.0 and no longer requires an attribute to enable
+  --> modules/axtask/src/lib.rs:33:12
+   |
+33 | #![feature(const_ptr_is_null)]
+   |            ^^^^^^^^^^^^^^^^^
+
+warning: the feature `const_unsafecell_get_mut` has been stable since 1.83.0 and no longer requires an attribute to enable
+  --> modules/axtask/src/lib.rs:34:12
+   |
+34 | #![feature(const_unsafecell_get_mut)]
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `axtask` (lib) generated 3 warnings
+warning: unused import: `core::arch::global_asm`
+ --> tour/h_5_0/src/vcpu.rs:1:5
+  |
+1 | use core::arch::global_asm;
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `PhysAddr`
+ --> tour/h_5_0/src/vmx.rs:4:18
+  |
+4 | use axhal::mem::{PhysAddr, VirtAddr, virt_to_phys};
+  |                  ^^^^^^^^
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:246:12
+    |
+246 |     cr4 |= (1 << 13); // Set VMXE bit
+    |            ^       ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+246 -     cr4 |= (1 << 13); // Set VMXE bit
+246 +     cr4 |= 1 << 13; // Set VMXE bit
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:491:18
+    |
+491 |     proc_ctls |= (1 << 31);
+    |                  ^       ^
+    |
+help: remove these parentheses
+    |
+491 -     proc_ctls |= (1 << 31);
+491 +     proc_ctls |= 1 << 31;
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:494:18
+    |
+494 |     proc_ctls |= (1 << 18); // HLT exiting
+    |                  ^       ^
+    |
+help: remove these parentheses
+    |
+494 -     proc_ctls |= (1 << 18); // HLT exiting
+494 +     proc_ctls |= 1 << 18; // HLT exiting
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:495:18
+    |
+495 |     proc_ctls |= (1 << 20); // INVLPG exiting
+    |                  ^       ^
+    |
+help: remove these parentheses
+    |
+495 -     proc_ctls |= (1 << 20); // INVLPG exiting
+495 +     proc_ctls |= 1 << 20; // INVLPG exiting
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:496:18
+    |
+496 |     proc_ctls |= (1 << 22); // RDTSC exiting
+    |                  ^       ^
+    |
+help: remove these parentheses
+    |
+496 -     proc_ctls |= (1 << 22); // RDTSC exiting
+496 +     proc_ctls |= 1 << 22; // RDTSC exiting
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:497:18
+    |
+497 |     proc_ctls |= (1 << 0);  // Interrupt window exiting
+    |                  ^      ^
+    |
+help: remove these parentheses
+    |
+497 -     proc_ctls |= (1 << 0);  // Interrupt window exiting
+497 +     proc_ctls |= 1 << 0;  // Interrupt window exiting
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:500:18
+    |
+500 |     proc_ctls |= (1 << 31);
+    |                  ^       ^
+    |
+help: remove these parentheses
+    |
+500 -     proc_ctls |= (1 << 31);
+500 +     proc_ctls |= 1 << 31;
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:513:29
+    |
+513 |     let mut sec_proc_ctls = (1 << 1); // Enable EPT
+    |                             ^      ^
+    |
+help: remove these parentheses
+    |
+513 -     let mut sec_proc_ctls = (1 << 1); // Enable EPT
+513 +     let mut sec_proc_ctls = 1 << 1; // Enable EPT
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:518:26
+    |
+518 |         sec_proc_ctls |= (1 << 7); // Enable unrestricted guest
+    |                          ^      ^
+    |
+help: remove these parentheses
+    |
+518 -         sec_proc_ctls |= (1 << 7); // Enable unrestricted guest
+518 +         sec_proc_ctls |= 1 << 7; // Enable unrestricted guest
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:535:18
+    |
+535 |     exit_ctls |= (1 << 9);
+    |                  ^      ^
+    |
+help: remove these parentheses
+    |
+535 -     exit_ctls |= (1 << 9);
+535 +     exit_ctls |= 1 << 9;
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:538:18
+    |
+538 |     exit_ctls |= (1 << 15);
+    |                  ^       ^
+    |
+help: remove these parentheses
+    |
+538 -     exit_ctls |= (1 << 15);
+538 +     exit_ctls |= 1 << 15;
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:552:19
+    |
+552 |     entry_ctls |= (1 << 9);  // Set bit 9 - ENABLE IA-32e mode
+    |                   ^      ^
+    |
+help: remove these parentheses
+    |
+552 -     entry_ctls |= (1 << 9);  // Set bit 9 - ENABLE IA-32e mode
+552 +     entry_ctls |= 1 << 9;  // Set bit 9 - ENABLE IA-32e mode
+    |
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/vmx.rs:593:13
+    |
+593 |     efer |= (1 << 8);  // LME
+    |             ^      ^
+    |
+help: remove these parentheses
+    |
+593 -     efer |= (1 << 8);  // LME
+593 +     efer |= 1 << 8;  // LME
+    |
+
+warning: unused import: `vmx::vmexit_handler`
+  --> tour/h_5_0/src/main.rs:18:5
+   |
+18 | use vmx::vmexit_handler;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around assigned value
+   --> tour/h_5_0/src/main.rs:567:27
+    |
+567 |     ctx.guest_state.cr4 = (1 << 5);
+    |                           ^      ^
+    |
+help: remove these parentheses
+    |
+567 -     ctx.guest_state.cr4 = (1 << 5);
+567 +     ctx.guest_state.cr4 = 1 << 5;
+    |
+
+warning: the feature `asm_const` has been stable since 1.82.0 and no longer requires an attribute to enable
+ --> tour/h_5_0/src/main.rs:3:12
+  |
+3 | #![feature(asm_const)]
+  |            ^^^^^^^^^
+  |
+  = note: `#[warn(stable_features)]` on by default
+
+warning: variable `edx` is assigned to, but never used
+   --> tour/h_5_0/src/vmx.rs:137:13
+    |
+137 |     let mut edx: u32;
+    |             ^^^
+    |
+    = note: consider using `_edx` instead
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: value assigned to `eax` is never read
+   --> tour/h_5_0/src/vmx.rs:141:30
+    |
+141 |             inlateout("eax") eax,
+    |                              ^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` on by default
+
+warning: value assigned to `edx` is never read
+   --> tour/h_5_0/src/vmx.rs:143:28
+    |
+143 |             lateout("edx") edx,
+    |                            ^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: variable `rax` is assigned to, but never used
+   --> tour/h_5_0/src/vmx.rs:308:9
+    |
+308 |     let rax: u64;
+    |         ^^^
+    |
+    = note: consider using `_rax` instead
+
+warning: value assigned to `rax` is never read
+   --> tour/h_5_0/src/vmx.rs:327:24
+    |
+327 |         lateout("rax") rax,
+    |                        ^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: variable does not need to be mutable
+   --> tour/h_5_0/src/vmx.rs:307:9
+    |
+307 |     let mut cf: u8 = 1; // Assume failure initially (CF=1)
+    |         ----^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `pd_gpa`
+   --> tour/h_5_0/src/main.rs:478:13
+    |
+478 |         let pd_gpa = pdp_entry0 as usize & !0xFFF;
+    |             ^^^^^^ help: if this is intentional, prefix it with an underscore: `_pd_gpa`
+
+warning: function `create_gdt` is never used
+  --> tour/h_5_0/src/main.rs:26:4
+   |
+26 | fn create_gdt() -> (VirtAddr, PhysAddr) {
+   |    ^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `extend_identity_mapping` is never used
+   --> tour/h_5_0/src/main.rs:140:4
+    |
+140 | fn extend_identity_mapping(pml4_paddr: PhysAddr, additional_addr: PhysAddr) {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: multiple variants are never constructed
+  --> tour/h_5_0/src/regs.rs:6:5
+   |
+5  | pub enum GprIndex {
+   |          -------- variants in this enum
+6  |     RAX,
+   |     ^^^
+7  |     RCX,
+   |     ^^^
+8  |     RDX,
+   |     ^^^
+9  |     RBX,
+   |     ^^^
+10 |     RSP,
+   |     ^^^
+11 |     RBP,
+   |     ^^^
+12 |     RSI,
+   |     ^^^
+13 |     RDI,
+   |     ^^^
+14 |     R8,
+   |     ^^
+15 |     R9,
+   |     ^^
+16 |     R10,
+   |     ^^^
+17 |     R11,
+   |     ^^^
+18 |     R12,
+   |     ^^^
+19 |     R13,
+   |     ^^^
+20 |     R14,
+   |     ^^^
+21 |     R15,
+   |     ^^^
+   |
+   = note: `GprIndex` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: associated function `from_raw` is never used
+  --> tour/h_5_0/src/regs.rs:26:12
+   |
+24 | impl GprIndex {
+   | ------------- associated function in this implementation
+25 |     /// Get register index from raw value.
+26 |     pub fn from_raw(raw: u32) -> Option<Self> {
+   |            ^^^^^^^^
+
+warning: constant `VMCS_16BIT_CONTROL_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:37:7
+   |
+37 | const VMCS_16BIT_CONTROL_FIELDS: u32 = 0x00004000;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_64BIT_CONTROL_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:38:7
+   |
+38 | const VMCS_64BIT_CONTROL_FIELDS: u32 = 0x00004002;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_16BIT_GUEST_STATE_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:39:7
+   |
+39 | const VMCS_16BIT_GUEST_STATE_FIELDS: u32 = 0x00008000;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_64BIT_GUEST_STATE_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:40:7
+   |
+40 | const VMCS_64BIT_GUEST_STATE_FIELDS: u32 = 0x00008002;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_32BIT_CONTROL_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:41:7
+   |
+41 | const VMCS_32BIT_CONTROL_FIELDS: u32 = 0x00004002;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_32BIT_GUEST_STATE_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:42:7
+   |
+42 | const VMCS_32BIT_GUEST_STATE_FIELDS: u32 = 0x00008002;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_NATURAL_WIDTH_CONTROL_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:43:7
+   |
+43 | const VMCS_NATURAL_WIDTH_CONTROL_FIELDS: u32 = 0x00004000;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `VMCS_NATURAL_WIDTH_GUEST_STATE_FIELDS` is never used
+  --> tour/h_5_0/src/vmx.rs:44:7
+   |
+44 | const VMCS_NATURAL_WIDTH_GUEST_STATE_FIELDS: u32 = 0x00008000;
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `write_cr0` is never used
+   --> tour/h_5_0/src/vmx.rs:213:11
+    |
+213 | unsafe fn write_cr0(value: u64) {
+    |           ^^^^^^^^^
+
+warning: `h_5_0` (bin "h_5_0") generated 38 warnings (run `cargo fix --bin "h_5_0"` to apply 18 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.06s
+[37mrust-objcopy --binary-architecture=x86_64[0m [90mtour/h_5_0//h_5_0_x86_64-qemu-q35.elf --strip-all -O binary tour/h_5_0//h_5_0_x86_64-qemu-q35.bin[0m
+    [96;1mRunning[0m on qemu...
+[37mqemu-system-x86_64[0m [90m-m 128M -smp 1 -machine q35 -kernel tour/h_5_0//h_5_0_x86_64-qemu-q35.elf -device virtio-blk-pci,drive=disk0 -drive id=disk0,if=none,format=raw,file=disk.img -nographic -D qemu.log -d in_asm,int,mmu,pcall,cpu_reset,guest_errors -cpu host -accel kvm[0m
+c[?7l[2J[0mSeaBIOS (version rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:02.0 CA00 PCI2.10 PnP PMM+06FD0AA0+06F30AA0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:02.0)...                                                                               
+
+
+Booting from ROM..
+Initialize IDT & GDT...
+
+       d8888                            .d88888b.   .d8888b.
+      d88888                           d88P" "Y88b d88P  Y88b
+     d88P888                           888     888 Y88b.
+    d88P 888 888d888  .d8888b  .d88b.  888     888  "Y888b.
+   d88P  888 888P"   d88P"    d8P  Y8b 888     888     "Y88b.
+  d88P   888 888     888      88888888 888     888       "888
+ d8888888888 888     Y88b.    Y8b.     Y88b. .d88P Y88b  d88P
+d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
+
+arch = x86_64
+platform = x86_64-qemu-q35
+target = x86_64-unknown-none
+smp = 1
+build_mode = release
+log_level = info
+
+[37m[  0.007199 0 axruntime:130] [32mLogging is enabled.[m
+[m[37m[  0.007942 0 axruntime:131] [32mPrimary CPU 0 started, dtb = 0x0.[m
+[m[37m[  0.008843 0 axruntime:133] [32mFound physcial memory regions:[m
+[m[37m[  0.009706 0 axruntime:135] [32m  [PA:0x200000, PA:0x247000) .text (READ | EXECUTE | RESERVED)[m
+[m[37m[  0.010920 0 axruntime:135] [32m  [PA:0x247000, PA:0x254000) .rodata (READ | RESERVED)[m
+[m[37m[  0.012044 0 axruntime:135] [32m  [PA:0x254000, PA:0x260000) .data .tdata .tbss .percpu (READ | WRITE | RESERVED)[m
+[m[37m[  0.013445 0 axruntime:135] [32m  [PA:0x260000, PA:0x2a0000) boot stack (READ | WRITE | RESERVED)[m
+[m[37m[  0.014674 0 axruntime:135] [32m  [PA:0x2a0000, PA:0x2c6000) .bss (READ | WRITE | RESERVED)[m
+[m[37m[  0.015838 0 axruntime:135] [32m  [PA:0x1000, PA:0x9f000) low memory (READ | WRITE | RESERVED)[m
+[m[37m[  0.017033 0 axruntime:135] [32m  [PA:0x2c6000, PA:0x8000000) free memory (READ | WRITE | FREE)[m
+[m[37m[  0.018235 0 axruntime:135] [32m  [PA:0xb0000000, PA:0xc0000000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.019544 0 axruntime:135] [32m  [PA:0xfe000000, PA:0xfec00000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.020848 0 axruntime:135] [32m  [PA:0xfec00000, PA:0xfec01000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.022156 0 axruntime:135] [32m  [PA:0xfed00000, PA:0xfed01000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.023466 0 axruntime:135] [32m  [PA:0xfee00000, PA:0xfee01000) mmio (READ | WRITE | DEVICE | RESERVED)[m
+[m[37m[  0.024767 0 axruntime:208] [32mInitialize global memory allocator...[m
+[m[37m[  0.025691 0 axruntime:209] [32m  use TLSF allocator.[m
+[m[37m[  0.026445 0 axmm:81] [32mInitialize virtual memory management...[m
+[m[37m[  0.028189 0 axruntime:150] [32mInitialize platform devices...[m
+[m[37m[  0.029033 0 axhal::platform::x86_pc::apic:87] [32mInitialize Local APIC...[m
+[m[37m[  0.030027 0 axhal::platform::x86_pc::apic:102] [32mUsing x2APIC.[m
+[m[37m[  0.030943 0 axhal::platform::x86_pc::apic:116] [32mInitialize IO APIC...[m
+[m[37m[  0.031926 0 axtask::api:68] [32mInitialize scheduling...[m
+[m[37m[  0.032837 0 axtask::api:74] [32m  use Completely Fair scheduler.[m
+[m[37m[  0.033740 0 axdriver:152] [32mInitialize device drivers...[m
+[m[37m[  0.034566 0 axdriver:153] [32m  device model: static[m
+[m[37m[  0.049790 0 virtio_drivers::device::blk:59] [32mconfig: 0xffffff80fe002000[m
+[m[37m[  0.050790 0 virtio_drivers::device::blk:64] [32mfound a block device of size 65536KB[m
+[m[37m[  0.051903 0 axdriver::bus::pci:104] [32mregistered a new Block device at 00:03.0: "virtio-blk"[m
+[m[37m[  0.349035 0 axfs:41] [32mInitialize filesystems...[m
+[m[37m[  0.349715 0 axfs:44] [32m  use block device 0: "virtio-blk"[m
+[m[37m[  0.353572 0 fatfs::dir:139] [31mIs a directory[m
+[m[37m[  0.358980 0 fatfs::dir:139] [31mIs a directory[m
+[m[37m[  0.365785 0 fatfs::dir:139] [31mIs a directory[m
+[m[37m[  0.374015 0 fatfs::dir:139] [31mIs a directory[m
+[m[37m[  0.377996 0 axruntime:176] [32mInitialize interrupt handlers...[m
+[m[37m[  0.378806 0 axruntime:186] [32mPrimary CPU 0 init OK.[m
+[mx86_64 Hypervisor ...
+VMX is supported!
+Initializing VMX...
+VMX revision: 0x11e57ed0
+VMXON region vaddr: 0xffffff800045d000, paddr: 0x45d000
+CR4 after setting VMXE: 0x20a0
+VMXON = succeeded
+VMXON finished
+Loading app: /sbin/skernel-x86
+Read 512 bytes from /sbin/skernel-x86
+Guest image loaded at paddr: PA:0x45f000
+EPT root: PA:0x45e000
+Guest code loaded at HPA: PA:0x45f000
+EPT mapping: HVA 0x100000 -> HPA PA:0x45f000
+  This means EPT maps GPA 0x100000 -> HPA PA:0x45f000
+  WARNING: EPT does NOT have identity mapping!
+  Guest paging expects GPA 0x100000 -> HPA 0x100000 (identity)
+  But EPT maps GPA 0x100000 -> HPA PA:0x45f000
+Identity mapping: GVA 0x0-0x3fffffff -> GPA 0x0-0x3fffffff (using 2MB pages)
+  PD[0] maps 0x0-0x1fffff -> GPA 0x0-0x1fffff
+  Guest code at GVA 0x100000 -> GPA 0x100000 (identity)
+Guest will execute at GVA 0x100000, which maps to GPA 0x100000
+Identity mapping pml4 vaddr: 0xffffff8000463000, paddr: PA:0x463000
+Guest CR3 (identity mapping): PA:0x463000
+Guest PML4[0] = 0x464003
+Guest PDP[0] = 0x465003
+Guest PD[0] (GPA 0x100000) = 0x466003
+Guest code at GVA 0x100000 -> GPA 0x100000 (identity mapped)
+GDT page GPA 0x100000: PML4[0], PDP[0], PD[0], PT[256]
+PML4[0] = 0x464003
+PDP[0] = 0x465003
+PD[0] (for GPA 0x0-0x1fffff) = 0x466003
+PT[0x100] (for GPA 0x100000) = 0x100003
+OK: PT[0x100] maps GPA 0x100000 -> HPA 0x100000
+Checking if EPT maps HPA 0x100000 (guest code location)...
+ERROR: EPT mismatch!
+  Guest paging: GPA 0x100000 -> HPA 0x100000
+  But guest code is at HPA 0x45d000 (not 0x100000)!
+  EPT needs to map GPA 0x100000 -> HPA 0x100000
+  But actual guest code is at HPA 0x45d000
+  SOLUTION: Fix guest paging to map GPA 0x100000 -> HPA 0x45d000
+
+Guest code GPA 0x100000 -> HPA PA:0x45f000
+GDT HPA 0x45f400 (offset 0x400 in code page)
+GDT entries at HPA 0x45f400:
+  GDT[0] = 0x0
+  GDT[1] = 0xaf9b000000ffff
+  GDT[2] = 0xf193000000ffff
+  GDT entry 1 (CS): 0xaf9b000000ffff
+  GDT[1]: limit=0xfffff, base=0x00000000
+GDT[1]: access=0x9b, P=1, DPL=0, L=1, D/B=0, G=1
+Expected GDT[1]: 0x00af9b000000ffff
+Actual GDT[1]:   0x00af9b000000ffff
+Match: true
+GDT GPA (for GDTR): 0x100400
+Stack allocated at GPA 0x200000
+PML4 mapped via EPT: GPA 0x463000 -> HPA 0x463000
+Guest paging structure addresses:
+  PML4 GPA = 0x463000
+  PDP  GPA = 0x464000
+  PD   GPA = 0x465000
+  PT   GPA = 0x466000
+PDP mapped via EPT: GPA 0x464000 -> HPA 0x464000
+PD mapped via EPT: GPA 0x465000 -> HPA 0x465000
+PT mapped via EPT: GPA 0x466000 -> HPA 0x466000
+Guest CR0: 0x80000021 (PE=1, NE=1, PG=1 - paging ENABLED)
+Guest CR3: 0x463000 (identity mapping page table - HPA!)
+Guest CR4: 0x20 (PAE=1 for 64-bit)
+GDTR: base=0x100400, limit=0xffff
+GDT at GPA 0x100400 (CS selector 0x8 => index 1)
+CS selector=0x8 => TI=0 (GDT), RPL=0, Index=1
+CS: base=0, limit=1048575, AR=0xdf9b
+Guest context prepared
+Using entry point: 0x100000 (VM_ENTRY)
+Guest will execute: GVA 0x100000 -> GPA 0x100000 (identity) -> HPA via EPT
+Setting up VMCS...
+Allocated VMCS at: vaddr=0xffffff8000469000, paddr=0x469000
+DEBUG: Guest RIP after VMPTRLD: 0x0
+Unrestricted guest NOT supported!
+Secondary proc-based controls: 0x2 (no unrestricted guest)
+IA-32e mode ENABLED (CR0.PG=1, CR4.PAE=1) - guest will run in 64-bit mode
+VM-entry controls: 0x1f3ff
+VM-entry controls: 0x1f3ff (MSR low: 0x11ff, high: 0x1f3ff)
+DEBUG: Guest RIP after control fields: 0x0
+Setting guest RIP: 0x100000, RSP: 0x200000, RFLAGS: 0x2
+Setting guest CR0: 0x80000021, CR3: 0x463000, CR4: 0x20
+DEBUG: Guest RIP after guest CR registers: 0x0
+DEBUG: Guest RIP after guest EFER: 0x0
+DEBUG: Guest RIP after guest RIP/RSP/RFLAGS: 0x100000
+Verified GUEST_RIP: 0x100000 (expected 0x100000)
+Verified GUEST_RSP: 0x200000 (expected 0x200000)
+DEBUG: Guest RIP after guest segment selectors: 0x100000
+DEBUG: Guest RIP after guest segment bases: 0x100000
+DEBUG: Guest RIP after guest segment limits: 0x100000
+DEBUG: CS AR for 64-bit mode (L=1, DB=0, G=1, limit[19:16]=0xF) = 0xdf9b
+  P=1, L=1, DB=0, G=1, limit[19:16]=0xF, access=0x9B
+DEBUG: After CS AR write, read_back=0xd09b
+DEBUG: CS limit BEFORE AR write: 0xfffff
+DEBUG: CS limit AFTER AR write: 0xfffff
+DEBUG: CS limit[19:16] = 0xf
+DEBUG: CS base = 0x0
+DEBUG: After all segment AR writes, CS AR=0xd09b
+DEBUG: DS AR=0x8093, ES AR=0x8093, SS AR=0x8093
+DEBUG: FS AR=0x8093, GS AR=0x8093
+DEBUG: DS limit=0xffffffff, SS limit=0xffffffff
+DEBUG: Guest RIP after guest segment AR: 0x100000
+=== GDTR AFTER WRITE ===
+GDTR base = 0x100400 (expected 0x100400)
+GDTR limit = 0xffff (expected 0xffff)
+CS AR after GDTR write = 0xd09b
+=== GUEST PAGING CONFIG ===
+CR0 = 0x80000021 (PE=1, PG=1)
+CR3 = 0x463000
+CR4 = 0x20 (PAE=1)
+=== GDT ACCESS FOR CS VALIDATION ===
+CS selector = 0x8 -> GDT index 1
+GDT entry address = GDTR.base + 8 = 0x100400 + 8 = 0x100408
+This GPA must be accessible via guest paging (CR3) and EPT
+Identity mapping covers GVA 0x0-0x3fffffff -> GPA 0x0-0x3fffffff
+GDT at GPA 0x100400 is within identity mapping range
+DEBUG: Final guest RIP in setup_vmcs_guest_state: 0x100000
+DEBUG: Guest RIP after guest state: 0x100000
+DEBUG: Guest RIP after host CR registers: 0x100000
+DEBUG: Guest RIP after host EFER: 0x100000
+DEBUG: Guest RIP after host segment selectors: 0x100000
+DEBUG: Guest RIP after host segment bases: 0x100000
+Guest RIP after host state setup: 0x100000
+EPT pointer set to: 0x45e006
+Note: EPT should map guest physical addresses to host physical addresses
+EPT root PML4 at: 0x45e000
+EPT PML4[0] = 0x460007
+EPT PDP[0] = 0x461007
+EPT PD[0] (GPA 0x100000-0x1FFFFF) = 0x462007
+EPT PT[256] (GPA 0x100000) = 0x45f007
+  -> 4KB page: GPA 0x100000 -> HPA 0x45f000
+Guest code first 8 bytes: 50 e8 0a 00 00 00 cc cc
+VMCS setup complete
+Entering guest mode...
+Launching VM...
+DEBUG: Guest RIP after host RSP: 0x100000
+DEBUG: Guest RIP after host RIP: 0x100000
+Executing VMLAUNCH...
+Guest RIP before VMLAUNCH: 0x100000
+Guest RFLAGS before VMLAUNCH: 0x2
+Guest CR0 before VMLAUNCH: 0x80000021
+Guest CR3 before VMLAUNCH: 0x463000
+Guest CR4 before VMLAUNCH: 0x20
+Guest CS: selector=0x8, base=0x0, ar=0xd09b
+VM exit occurred
+Guest RIP after VM-exit: 0x100000
+Raw exit reason: 0x0
+Raw exit qualification: 0x0
+VM-instruction error: 0xc
+VM Exit - Reason: 0x0 (EXCEPTION_NMI)
+  Exit qualification: 0x0
+  Guest RIP: 0x100000
+EXCEPTION_NMI details:
+  VMCS_VM_EXIT_INTR_INFO: 0x0
+  Interruption type: 0x0
+  Vector: 0x0
+  Error code valid: 0
+  -> #DE (Divide Error)
+VM exited successfully!
+Cleaning up VMX...
+VMX cleanup complete
+[37m[  0.445890 0:2 axhal::platform::x86_pc::misc:7] [32mShutting down...[m
+[m

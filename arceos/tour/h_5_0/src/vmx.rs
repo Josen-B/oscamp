@@ -95,6 +95,14 @@ const VMCS_GUEST_IDTR_BASE: u32 = 0x0000681E;
 const VMCS_GUEST_IDTR_LIMIT: u32 = 0x0000480C;
 
 const VMCS_GUEST_LINK_POINTER: u32 = 0x00002800;
+const VMCS_IA32_EFER: u32 = 0x00002802; // MSR index for IA32_EFER
+
+const VMCS_ENTRY_MSR_LOAD_COUNT: u32 = 0x00004010;
+const VMCS_ENTRY_MSR_LOAD_ADDR: u32 = 0x0000400C;
+const VMCS_EXIT_MSR_STORE_COUNT: u32 = 0x00004012;
+const VMCS_EXIT_MSR_STORE_ADDR: u32 = 0x0000400E;
+const VMCS_EXIT_MSR_LOAD_COUNT: u32 = 0x00004014;
+const VMCS_EXIT_MSR_LOAD_ADDR: u32 = 0x00004016;
 
 // Host state fields
 const VMCS_HOST_CR0: u32 = 0x00006C00;
@@ -264,29 +272,35 @@ pub fn vmx_init() {
         *(vmxon_region as *mut u32) = revision_id as u32;
         
         ax_println!("VMX revision: {:#x}", revision_id);
-        ax_println!("VMXON region: {:#x}", vmxon_region);
-        
-        // Execute VMXON
-        let cf = vmxon(vmxon_region);
-        if cf {
+        ax_println!("VMXON region (virt): {:#x}", vmxon_region);
+
+        // Convert to physical address
+        let vmxon_paddr = axhal::mem::virt_to_phys(axhal::mem::VirtAddr::from(vmxon_region as usize));
+        ax_println!("VMXON region (phys): {:#x}", usize::from(vmxon_paddr));
+
+        // Execute VMXON with physical address
+        let success = vmxon_phys(usize::from(vmxon_paddr));
+        if !success {
             alloc::alloc::dealloc(
                 vmxon_region as *mut u8,
                 alloc::alloc::Layout::from_size_align(4096, 4096).unwrap()
             );
             panic!("VMXON failed!");
         }
-        
+
         ax_println!("VMXON successful");
     }
 }
 
-/// VMXON instruction
-unsafe fn vmxon(phys_addr: u64) -> bool {
+/// VMXON instruction (expects physical address)
+unsafe fn vmxon_phys(phys_addr: usize) -> bool {
     let mut cr4 = read_cr4();
     cr4 |= 1 << 13; // Set VMXE bit
     write_cr4(cr4);
     
     // Execute VMXON and check carry flag
+    // According to Intel SDM: VMXON m64, where m64 is a memory location containing the 64-bit physical address
+    let phys_addr_ptr = &phys_addr as *const usize as *const u8;
     let success: u8;
     core::arch::asm!(
         "vmxon [{0}]",
@@ -295,7 +309,7 @@ unsafe fn vmxon(phys_addr: u64) -> bool {
         "jmp 3f",
         "2: mov {1}, 1",
         "3:",
-        in(reg) phys_addr,
+        in(reg) phys_addr_ptr,
         out(reg_byte) success,
         options(nostack)
     );
@@ -337,18 +351,22 @@ unsafe fn allocate_vmcs() -> u64 {
 
 /// VMCLEAR instruction
 unsafe fn vmclear(vmcs: u64) {
+    let vmcs_phys = axhal::mem::virt_to_phys(axhal::mem::VirtAddr::from(vmcs as usize));
+    let phys_addr_ptr = &usize::from(vmcs_phys) as *const usize as *const u8;
     core::arch::asm!(
-        "vmclear [{}]",
-        in(reg) &vmcs,
+        "vmclear [{0}]",
+        in(reg) phys_addr_ptr,
         options(nostack)
     );
 }
 
 /// VMPTRLD instruction
 unsafe fn vmptrld(vmcs: u64) {
+    let vmcs_phys = axhal::mem::virt_to_phys(axhal::mem::VirtAddr::from(vmcs as usize));
+    let phys_addr_ptr = &usize::from(vmcs_phys) as *const usize as *const u8;
     core::arch::asm!(
-        "vmptrld [{}]",
-        in(reg) &vmcs,
+        "vmptrld [{0}]",
+        in(reg) phys_addr_ptr,
         options(nostack)
     );
 }
@@ -365,11 +383,11 @@ unsafe fn vmwrite(field: u32, value: u64) {
 
 /// VMREAD instruction
 unsafe fn vmread(field: u32) -> u64 {
-    let mut value: u64;
+    let value: u64;
     core::arch::asm!(
         "vmread {}, {}",
-        inlateout(reg) field as u64 => _,
-        lateout(reg) value,
+        out(reg) value,
+        in(reg) field as u64,
         options(nostack)
     );
     value
@@ -408,72 +426,81 @@ pub fn setup_vmcs(ctx: &mut VmCpuRegisters, ept_root: axhal::mem::PhysAddr) -> R
 /// Setup VMCS control fields
 unsafe fn setup_vmcs_control_fields() -> Result<(), &'static str> {
     // Pin-based VM-execution controls
+    // MSR format: bits 31:0 = must-be-1, bits 63:32 = may-be-1
     let pin_ctls_msr = read_msr(MSR_IA32_VMX_PINBASED_CTLS);
-    let pin_ctls = (pin_ctls_msr as u32) & 0x0000FFFF; // 0s are 1-settings
+    let pin_ctls = (pin_ctls_msr >> 32) as u32; // Start with all must-be-1 bits
     vmwrite(VMCS_PIN_BASED_VM_EXEC_CONTROL, pin_ctls as u64);
-    
+
     // Primary processor-based VM-execution controls
     let proc_ctls_msr = read_msr(MSR_IA32_VMX_PROCBASED_CTLS);
-    let mut proc_ctls = (proc_ctls_msr as u32) & 0x0000FFFF;
-    
+    let mut proc_ctls = (proc_ctls_msr >> 32) as u32; // Start with all must-be-1 bits
+
     // Enable use of EPT
     proc_ctls |= (1 << 31);
-    
+
+    // Enable unrestricted guest mode (allows guest to run in real mode)
+    proc_ctls |= (1 << 7);
+
     // Enable HLT exiting (so we can catch guest's shutdown)
     proc_ctls |= (1 << 18); // HLT exiting
     proc_ctls |= (1 << 20); // INVLPG exiting
     proc_ctls |= (1 << 22); // RDTSC exiting
-    proc_ctls |= (1 << 0);  // Interrupt window exiting
-    
-    // Ensure all required bits are set (0-setting bits)
-    let required_0_bits = (proc_ctls_msr >> 32) as u32;
-    proc_ctls |= required_0_bits;
-    
-    // Clear all 1-setting bits we don't want
-    let required_1_bits = (proc_ctls_msr & 0xFFFFFFFF) as u32;
-    proc_ctls &= required_1_bits | !0xFFFFFFFF;
-    
+
     vmwrite(VMCS_PRIMARY_PROC_BASED_VM_EXEC_CONTROL, proc_ctls as u64);
-    
+
     // Exception bitmap - all exceptions cause VM-exit
     vmwrite(VMCS_EXCEPTION_BITMAP, 0xFFFFFFFF);
-    
+
     // VM-exit controls
     let exit_ctls_msr = read_msr(MSR_IA32_VMX_EXIT_CTLS);
-    let mut exit_ctls = (exit_ctls_msr as u32) & 0x0000FFFF;
-    
+    let mut exit_ctls = (exit_ctls_msr >> 32) as u32; // Start with all must-be-1 bits
+
     // Host address space size (64-bit)
     exit_ctls |= (1 << 9);
-    
+
     // Acknowledge interrupt on exit
     exit_ctls |= (1 << 15);
-    
-    // Ensure all required bits are set
-    let exit_required_0_bits = (exit_ctls_msr >> 32) as u32;
-    exit_ctls |= exit_required_0_bits;
-    
+
     vmwrite(VMCR_VM_EXIT_CONTROLS, exit_ctls as u64);
-    
+
     // VM-entry controls
     let entry_ctls_msr = read_msr(MSR_IA32_VMX_ENTRY_CTLS);
-    let mut entry_ctls = (entry_ctls_msr as u32) & 0x0000FFFF;
-    
+    ax_println!("VM-entry MSR: {:#x}", entry_ctls_msr);
+    ax_println!("  MSR low 32: {:#x}, high 32: {:#x}", 
+        entry_ctls_msr as u32, (entry_ctls_msr >> 32) as u32);
+    let mut entry_ctls = (entry_ctls_msr >> 32) as u32; // Start with all must-be-1 bits
+    ax_println!("  Initial entry_ctls: {:#x}", entry_ctls);
+
+    // NOTE: Don't enable IA-32e mode (bit 9) when PG=0
     // IA-32e mode guest (64-bit)
-    entry_ctls |= (1 << 9);
-    
-    // Ensure all required bits are set
-    let entry_required_0_bits = (entry_ctls_msr >> 32) as u32;
-    entry_ctls |= entry_required_0_bits;
-    
+    // entry_ctls |= (1 << 9);
+    ax_println!("  Final entry_ctls (without IA-32e): {:#x}", entry_ctls);
+
     vmwrite(VMCR_VM_ENTRY_CONTROLS, entry_ctls as u64);
+    let verify = vmread(VMCR_VM_ENTRY_CONTROLS);
+    ax_println!("  Verify VM-entry controls after write: {:#x}", verify);
+    if verify != entry_ctls as u64 {
+        ax_println!("  WARNING: Write failed! Expected {:#x}, got {:#x}", entry_ctls, verify);
+    }
     
     // CR3 target count
     vmwrite(VMCS_CR3_TARGET_COUNT, 0);
-    
+
     // Page fault error code mask
     vmwrite(VMCS_PAGE_FAULT_ERROR_CODE_MASK, 0);
     vmwrite(VMCS_PAGE_FAULT_ERROR_CODE_MATCH, 0);
-    
+
+    // Setup MSR load area for VM-entry
+    let msr_load_addr = create_msr_load_area();
+    vmwrite(VMCS_ENTRY_MSR_LOAD_ADDR, msr_load_addr);
+    vmwrite(VMCS_ENTRY_MSR_LOAD_COUNT, 1); // 1 MSR to load
+
+    // Set VM-exit MSR store/load to empty
+    vmwrite(VMCS_EXIT_MSR_STORE_ADDR, 0);
+    vmwrite(VMCS_EXIT_MSR_STORE_COUNT, 0);
+    vmwrite(VMCS_EXIT_MSR_LOAD_ADDR, 0);
+    vmwrite(VMCS_EXIT_MSR_LOAD_COUNT, 0);
+
     Ok(())
 }
 
@@ -481,16 +508,60 @@ unsafe fn setup_vmcs_control_fields() -> Result<(), &'static str> {
 unsafe fn setup_vmcs_guest_state(ctx: &mut VmCpuRegisters) -> Result<(), &'static str> {
     let gs = &ctx.guest_state;
     
+    // Re-write VM-entry controls at start (workaround for bug)
+    let entry_ctls_msr = read_msr(MSR_IA32_VMX_ENTRY_CTLS);
+    let mut entry_ctls = (entry_ctls_msr >> 32) as u32;
+    // NOTE: Don't enable IA-32e mode (bit 9) when PG=0
+    // entry_ctls |= (1 << 9); // IA-32e mode
+    vmwrite(VMCR_VM_ENTRY_CONTROLS, entry_ctls as u64);
+    ax_println!("Re-initialized VM-entry controls: {:#x}", entry_ctls);
+    
     // Control registers
+    ax_println!("Writing CR0: {:#x}, CR3: {:#x}, CR4: {:#x}", gs.cr0, gs.cr3, gs.cr4);
     vmwrite(VMCS_GUEST_CR0, gs.cr0);
+    let check1 = vmread(VMCR_VM_ENTRY_CONTROLS);
+    ax_println!("VM-entry controls after CR0: {:#x}", check1);
+    
     vmwrite(VMCS_GUEST_CR3, gs.cr3);
+    let check2 = vmread(VMCR_VM_ENTRY_CONTROLS);
+    ax_println!("VM-entry controls after CR3: {:#x}", check2);
+    
     vmwrite(VMCS_GUEST_CR4, gs.cr4);
+    let check3 = vmread(VMCR_VM_ENTRY_CONTROLS);
+    ax_println!("VM-entry controls after CR4: {:#x}", check3);
+    
+    // Save entry_ctls for later use
+    let final_entry_ctls = entry_ctls;
     
     // RIP and RSP
+    ax_println!("Writing guest RIP: {:#x}", gs.rip);
     vmwrite(VMCS_GUEST_RIP, gs.rip);
+    let rip_check = vmread(VMCS_GUEST_RIP);
+    ax_println!("Read back guest RIP: {:#x}", rip_check);
+
     vmwrite(VMCS_GUEST_RSP, gs.rsp);
     vmwrite(VMCS_GUEST_RFLAGS, gs.rflags);
-    
+
+    // Check control fields (before writing CS)
+    let entry_ctrl = vmread(VMCR_VM_ENTRY_CONTROLS);
+    ax_println!("VM-entry controls: {:#x}", entry_ctrl);
+
+    // Check CS selector and access rights (will be set later)
+    let cs_sel = vmread(VMCS_GUEST_CS_SELECTOR);
+    let cs_ar = vmread(VMCS_GUEST_CS_AR_BYTES);
+    ax_println!("Guest CS selector before write: {:#x}, AR before write: {:#x}", cs_sel, cs_ar);
+    ax_println!("Writing CS AR: {:#x} (32-bit code segment, D=1, L=0)", gs.cs_access_rights);
+
+    // Segment selectors
+    vmwrite(VMCS_GUEST_ES_SELECTOR, gs.es_selector as u64);
+    vmwrite(VMCS_GUEST_CS_SELECTOR, gs.cs_selector as u64);
+    vmwrite(VMCS_GUEST_SS_SELECTOR, gs.ss_selector as u64);
+    vmwrite(VMCS_GUEST_DS_SELECTOR, gs.ds_selector as u64);
+    vmwrite(VMCS_GUEST_FS_SELECTOR, gs.fs_selector as u64);
+    vmwrite(VMCS_GUEST_GS_SELECTOR, gs.gs_selector as u64);
+    vmwrite(VMCS_GUEST_LDTR_SELECTOR, gs.ldtr_selector as u64);
+    vmwrite(VMCS_GUEST_TR_SELECTOR, gs.tr_selector as u64);
+
     // Segment selectors
     vmwrite(VMCS_GUEST_ES_SELECTOR, gs.es_selector as u64);
     vmwrite(VMCS_GUEST_CS_SELECTOR, gs.cs_selector as u64);
@@ -522,6 +593,7 @@ unsafe fn setup_vmcs_guest_state(ctx: &mut VmCpuRegisters) -> Result<(), &'stati
     vmwrite(VMCS_GUEST_TR_LIMIT, gs.tr_limit as u64);
     
     // Segment access rights
+    ax_println!("Writing CS AR: {:#x}", gs.cs_access_rights);
     vmwrite(VMCS_GUEST_ES_AR_BYTES, gs.es_access_rights);
     vmwrite(VMCS_GUEST_CS_AR_BYTES, gs.cs_access_rights);
     vmwrite(VMCS_GUEST_SS_AR_BYTES, gs.ss_access_rights);
@@ -530,6 +602,20 @@ unsafe fn setup_vmcs_guest_state(ctx: &mut VmCpuRegisters) -> Result<(), &'stati
     vmwrite(VMCS_GUEST_GS_AR_BYTES, gs.gs_access_rights);
     vmwrite(VMCS_GUEST_LDTR_AR_BYTES, gs.ldtr_access_rights);
     vmwrite(VMCS_GUEST_TR_AR_BYTES, gs.tr_access_rights);
+
+    // Verify CS AR was written
+    let cs_ar_check = vmread(VMCS_GUEST_CS_AR_BYTES);
+    ax_println!("CS AR after write: {:#x} (expected {:#x})", cs_ar_check, gs.cs_access_rights);
+
+    // Check all segments
+    let ds_ar = vmread(VMCS_GUEST_DS_AR_BYTES);
+    let es_ar = vmread(VMCS_GUEST_ES_AR_BYTES);
+    let ss_ar = vmread(VMCS_GUEST_SS_AR_BYTES);
+    ax_println!("DS AR: {:#x}, ES AR: {:#x}, SS AR: {:#x}", ds_ar, es_ar, ss_ar);
+
+    // Read VM-instruction error before VMLAUNCH
+    let vm_instr_error = vmread(VMCS_VM_INSTRUCTION_ERROR);
+    ax_println!("VM-instruction error before VMLAUNCH: {:#x}", vm_instr_error);
     
     // GDTR and IDTR
     vmwrite(VMCS_GUEST_GDTR_BASE, gs.gdtr_base);
@@ -543,10 +629,46 @@ unsafe fn setup_vmcs_guest_state(ctx: &mut VmCpuRegisters) -> Result<(), &'stati
     
     // Link pointer
     vmwrite(VMCS_GUEST_LINK_POINTER, 0xFFFFFFFFFFFFFFFF);
+
+    // Re-write VM-entry controls at end (workaround for bug)
+    // Do this AFTER all other guest state fields are set
+    vmwrite(VMCR_VM_ENTRY_CONTROLS, final_entry_ctls as u64);
+    let final_check = vmread(VMCR_VM_ENTRY_CONTROLS);
+    ax_println!("Re-set VM-entry controls before VMLAUNCH: {:#x}", final_entry_ctls);
+    ax_println!("Final VM-entry controls read back: {:#x}", final_check);
     
+    // Verify CS AR one more time
+    let cs_final = vmread(VMCS_GUEST_CS_AR_BYTES);
+    ax_println!("CS AR final check: {:#x}", cs_final);
+
     Ok(())
 }
 
+/// Create MSR load area for VM-entry
+unsafe fn create_msr_load_area() -> u64 {
+    // MSR load area format: Each entry is 16 bytes
+    // Offset 0-3: MSR index
+    // Offset 4-7: Reserved (MBZ)
+    // Offset 8-15: MSR value
+
+    let msr_area = alloc::alloc::alloc_zeroed(
+        alloc::alloc::Layout::from_size_align(4096, 4096).unwrap()
+    ) as u64;
+
+    // Set IA32_EFER.LMA (bit 10), LME (bit 8) and SCE (bit 0)
+    // IA32_EFER MSR index = 0xC0000080
+    unsafe {
+        *((msr_area + 0) as *mut u32) = 0xC0000080; // MSR index
+        *((msr_area + 4) as *mut u32) = 0; // Reserved
+        *((msr_area + 8) as *mut u64) = 0x1100; // IA32_EFER.LMA = 1, LME = 1, SCE = 0
+    }
+
+    let msr_area_paddr = axhal::mem::virt_to_phys(axhal::mem::VirtAddr::from(msr_area as usize));
+    ax_println!("MSR load area at vaddr: {:#x}, paddr: {:#x}", msr_area, usize::from(msr_area_paddr));
+    ax_println!("IA32_EFER value: {:#x}", unsafe { *((msr_area + 8) as *mut u64) });
+
+    msr_area_paddr.as_usize() as u64
+}
 /// Setup VMCS host state
 unsafe fn setup_vmcs_host_state() -> Result<(), &'static str> {
     // Read current CR0, CR3, CR4
@@ -618,11 +740,11 @@ unsafe fn setup_vmcs_host_state() -> Result<(), &'static str> {
 
 /// Setup EPT pointer
 unsafe fn setup_ept_pointer(ept_root: axhal::mem::PhysAddr) -> Result<(), &'static str> {
-    // EPT pointer format: [63:52] reserved, [51:12] PML4 address, [11:3] 0, [2:0] memory type
-    // For simplicity, use write-back memory type (6)
-    let eptp = (usize::from(ept_root) & 0x000FFFF_FFFFF000) | 6;
+    // EPT pointer format: [63:52] reserved, [51:12] PML4 address, [11:3] reserved, [2:0] walk length
+    // For 4-level EPT, walk length = 4-1 = 3
+    let eptp = (usize::from(ept_root) & 0x000FFFF_FFFFF000) | 3;
     vmwrite(VMCS_EPT_POINTER, eptp as u64);
-    
+
     ax_println!("EPT pointer set to: {:#x}", eptp);
     Ok(())
 }
@@ -658,14 +780,20 @@ pub fn vmx_launch(ctx: &mut VmCpuRegisters) {
         
         // If we reach here, VM-exit occurred
         ax_println!("VM exit occurred");
-        
+
+        // Check VM-instruction error after VMLAUNCH
+        let vm_instr_error_after = vmread(VMCS_VM_INSTRUCTION_ERROR);
+        ax_println!("VM-instruction error after VMLAUNCH: {:#x}", vm_instr_error_after);
+
         // Read guest state from VMCS
         ctx.guest_state.rip = vmread(VMCS_GUEST_RIP);
         ctx.guest_state.rsp = vmread(VMCS_GUEST_RSP);
         ctx.guest_state.rflags = vmread(VMCS_GUEST_RFLAGS);
-        
+
         // Read VM-exit reason and qualification
-        ctx.guest_state.exit_reason = vmread(VMCS_EXIT_REASON) as u32;
+        let exit_reason_raw = vmread(VMCS_EXIT_REASON);
+        ax_println!("VM-exit reason raw: {:#x}", exit_reason_raw);
+        ctx.guest_state.exit_reason = exit_reason_raw as u32;
         ctx.guest_state.exit_qualification = vmread(VMCS_EXIT_QUALIFICATION);
         ctx.guest_state.guest_linear_address = vmread(VMCS_GUEST_LINEAR_ADDRESS);
         ctx.guest_state.guest_physical_address = vmread(VMCS_GUEST_PHYSICAL_ADDRESS);

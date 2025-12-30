@@ -11,6 +11,7 @@ axtask = { workspace = true }
 axsync = { workspace = true }
 axerrno = "0.1"
 axlog = { workspace = true }
+axalloc = { workspace = true }
 bitflags = "2.4"
 memoffset = "0.9"
 
