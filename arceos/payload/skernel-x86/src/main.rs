@@ -8,7 +8,11 @@ const VM_EXIT_HYPERCALL: u64 = 0;
 
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {
-    panic!("VM exited via hypercall!");
+    // Execute HLT instruction to trigger VM-exit
+    // This allows the hypervisor to detect that guest has started and executed successfully
+    loop {
+        core::arch::asm!("hlt");
+    }
 }
 
 #[panic_handler]
