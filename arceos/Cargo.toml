@@ -33,6 +33,7 @@ members = [
     "payload/skernel-x86",
     "tour/x_1_0",
     "tour/x_2_0",
+    "tour/x_3_0",
 
     "tour/u_1_0",
     "tour/u_2_0",

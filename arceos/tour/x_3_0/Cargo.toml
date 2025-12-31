@@ -1,0 +1,14 @@
+[package]
+name = "x_3_0"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.21"
+axstd = { workspace = true, features = ["alloc", "paging", "fs", "multitask", "irq"] }
+axhal = { workspace = true }
+axmm = { workspace = true }
+x86_vcpu = { path = "../../modules/x86_vcpu", features = ["vmx"] }
+axerrno = "0.1"
+memory_addr = "0.3"
+axvcpu = "0.1"
