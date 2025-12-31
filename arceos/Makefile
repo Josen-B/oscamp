@@ -35,7 +35,7 @@ LOG ?= warn
 V ?=
 
 # App options
-A ?= tour/u_1_0
+A ?= tour/u_4_0
 APP ?= $(A)
 FEATURES ?=
 APP_FEATURES ?=

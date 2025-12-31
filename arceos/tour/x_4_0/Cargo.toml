@@ -1,5 +1,5 @@
 [package]
-name = "x_3_0"
+name = "x_4_0"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,6 +8,5 @@ log = "0.4.21"
 axstd = { workspace = true, features = ["alloc", "paging", "fs", "multitask", "irq"] }
 axhal = { workspace = true }
 axmm = { workspace = true }
-x86_vcpu = { path = "../../modules/x86_vcpu", features = ["vmx"] }
+x86_vcpu = { path = "../../modules/x86_vcpu" }
 axerrno = "0.1"
-axvcpu = "0.1"

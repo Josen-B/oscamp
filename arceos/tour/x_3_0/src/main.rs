@@ -9,7 +9,7 @@ extern crate axstd as std;
 use alloc::string::ToString;
 use x86_vcpu::{VmxExitReason, VmxArchVCpu};
 use axerrno::{ax_err_type, AxResult};
-use memory_addr::VirtAddr;
+use axhal::mem::VirtAddr;
 use alloc::string::String;
 use std::fs::File;
 use axvcpu::AxVCpuExitReason;
