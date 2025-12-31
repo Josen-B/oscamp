@@ -109,9 +109,9 @@ make A=tour/m_1_1
 make run A=tour/h_4_0 BLK=y
 ```
 
-#### h_5_0 (x86_64 Hypervisor)
+#### x_1_0 (x86_64 Hypervisor)
 ```
-# Note: h_5_0 is for x86_64 architecture only
+# Note: x_1_0 is for x86_64 architecture only
 # Requires Intel VT-x support
 
 # Build guest kernel
@@ -125,6 +125,6 @@ make payload
 ./update_disk.sh payload/skernel-x86/skernel-x86
 
 # Run (requires x86_64 with VT-x)
-make run A=tour/h_5_0 BLK=y
+make run A=tour/x_1_0 BLK=y
 ```
 
