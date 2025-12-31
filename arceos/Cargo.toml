@@ -18,6 +18,7 @@ members = [
     "modules/axtask",
     "modules/bump_allocator",
     "modules/riscv_vcpu",
+    "modules/x86_vcpu",
 
     "api/axfeat",
     "api/arceos_api",
@@ -31,6 +32,7 @@ members = [
     "payload/skernel2",
     "payload/skernel-x86",
     "tour/x_1_0",
+    "tour/x_2_0",
 
     "tour/u_1_0",
     "tour/u_2_0",

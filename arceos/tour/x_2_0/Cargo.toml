@@ -1,0 +1,15 @@
+[package]
+name = "x_2_0"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.21"
+axstd = { workspace = true, features = ["alloc", "paging", "fs", "multitask", "irq"] }
+axhal = { workspace = true }
+axmm = { workspace = true }
+axerrno = "0.1"
+arceos_api = { path = "../../api/arceos_api" }
+
+[features]
+default = []
